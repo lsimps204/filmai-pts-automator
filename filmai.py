@@ -1,5 +1,6 @@
 """ Automates getting daily point updates from filmai.in streaming site 
-    Chrome and Firefox only. """
+    Chrome and Firefox only.
+    Run command: python filmai.py <username> <password> <browser> """
 
 import requests, time, shutil, zipfile, io, os, sys
 
@@ -24,20 +25,20 @@ else:
 if usr_browser.strip().lower() == "firefox":
     driverpath = os.path.join(os.path.expanduser("~"), "geckodriver") # Installation path
     driver_link = "https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip"
-    browser = webdriver.Firefox # Set browser to the correct driver
+    browser = webdriver.Firefox 
     driver_string = "geckodriver"
 elif usr_browser.strip().lower() == "chrome":
     driverpath = os.path.join(os.path.expanduser("~"), "chromedriver") # Installation path
     driver_link = "https://chromedriver.storage.googleapis.com/2.45/chromedriver_win32.zip"
-    browser = webdriver.Chrome # Set browser to the correct driver
+    browser = webdriver.Chrome
     driver_string = "chromedriver"
 else:
     print("Invalid browser entered. Quitting...")
     sys.exit(1)
 
-# If the "geckodriver" executable (for running Firefox browser) does not exist, install it..
+# If the executable (for running Chrome/Firefox browser) does not exist, install it..
 if not os.path.exists(driverpath):
-    print("Downloading Firefox driver...")
+    print("Downloading {} driver...".format(driver_string[0:driver_string.index('d')]))
 
     # Make request to download the driver, and extract the ZIP file if successful
     r = requests.get(driver_link, stream=True)

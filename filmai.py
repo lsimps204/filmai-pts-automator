@@ -4,8 +4,10 @@
 import requests, time, shutil, zipfile, io, os, sys
 
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 print("Starting...")
 geckopath = os.path.join(os.path.expanduser("~"), "geckodriver") # Installation path
@@ -50,13 +52,38 @@ if shutil.which("geckodriver") is not None:
     open_loginform_btn = browser.find_element_by_xpath("//div[@class='d-inline-block link-green loginBtn']")
     open_loginform_btn.click()
 
-    uname_element = browser.find_element_by_name("login_name")
-    pw_element = browser.find_element_by_name("login_password")
-    login_btn =  browser.find_element_by_xpath("//button[@class='btn btn-primary btn-block']")
+    uname_element = WebDriverWait(browser, 2).until(
+        EC.presence_of_element_located((By.NAME, "login_name"))
+    )
+
+    pw_element = WebDriverWait(browser, 2).until(
+        EC.presence_of_element_located((By.NAME, "login_password"))
+    )
+
+    login_btn = WebDriverWait(browser, 2).until(
+        EC.presence_of_element_located((By.XPATH, "//button[@class='btn btn-primary btn-block']"))
+    )
+
+    # uname_element = browser.find_element_by_name("login_name")
+    # pw_element = browser.find_element_by_name("login_password")
+    # login_btn =  browser.find_element_by_xpath("//button[@class='btn btn-primary btn-block']")
 
     uname_element.send_keys(username)
     pw_element.send_keys(password)
     login_btn.click()
 
-    get_point_btn = browser.find_element_by_xpath("//div[@class='upfv link-green transfer pts ptsplus']")
-    get_point_btn.click()
+    try:
+        #get_point_btn = browser.find_element_by_xpath("//div[@class='upfv link-green transfer pts ptsplus']")
+        get_point_btn = WebDriverWait(browser, 2).until(
+            EC.presence_of_element_located((By.XPATH, "//div[@class='upfv link-green transfer pts ptsplus']"))
+        )
+        get_point_btn.click()
+    except TimeoutException as e:
+        print("Could not find the add points button. Points may already be added for the current day...")
+
+
+    WebDriverWait(browser, 2).until \
+        (EC.invisibility_of_element_located((By.XPATH, "//div[@class='upfv link-green transfer pts ptsplus']"))
+    )
+
+    browser.quit()

@@ -1,5 +1,5 @@
 """ Automates getting daily point updates from filmai.in streaming site 
-    Currently Firefox only. """
+    Chrome and Firefox only. """
 
 import requests, time, shutil, zipfile, io, os, sys
 
@@ -10,38 +10,57 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 print("Starting...")
-geckopath = os.path.join(os.path.expanduser("~"), "geckodriver") # Installation path
+
+# Set username/password for the site as passed into script, and set the browser for use
+if len(sys.argv) == 4:
+    username = sys.argv[1]
+    password = sys.argv[2]
+    usr_browser = sys.argv[3]
+else:
+    print("Incorrect number of arguments...")
+    sys.exit(1)
+
+# Set variables depending on browser (Firefox or Chrome)
+if usr_browser.strip().lower() == "firefox":
+    driverpath = os.path.join(os.path.expanduser("~"), "geckodriver") # Installation path
+    driver_link = "https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip"
+    browser = webdriver.Firefox # Set browser to the correct driver
+    driver_string = "geckodriver"
+elif usr_browser.strip().lower() == "chrome":
+    driverpath = os.path.join(os.path.expanduser("~"), "chromedriver") # Installation path
+    driver_link = "https://chromedriver.storage.googleapis.com/2.45/chromedriver_win32.zip"
+    browser = webdriver.Chrome # Set browser to the correct driver
+    driver_string = "chromedriver"
+else:
+    print("Invalid browser entered. Quitting...")
+    sys.exit(1)
 
 # If the "geckodriver" executable (for running Firefox browser) does not exist, install it..
-if not os.path.exists(geckopath):
+if not os.path.exists(driverpath):
     print("Downloading Firefox driver...")
 
     # Make request to download the driver, and extract the ZIP file if successful
-    r = requests.get("https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip", stream=True)
+    r = requests.get(driver_link, stream=True)
     if r.status_code == requests.codes.ok: #200
         print("Extracting file...")
         z = zipfile.ZipFile(io.BytesIO(r.content))
-        z.extractall(path=geckopath)
+        z.extractall(path=driverpath)
 
 # Add the geckodriver executable directory to system path
-if shutil.which("geckodriver") is None:
-    if "geckodriver" not in os.environ["PATH"]:
-        os.environ["PATH"] += os.pathsep + geckopath
+if shutil.which(driver_string) is None:
+    if driver_string not in os.environ["PATH"]:
+        os.environ["PATH"] += os.pathsep + driverpath
 
 
 # Run the selenium tasks
-if shutil.which("geckodriver") is not None:
-    
-    # Set username/password for the site as passed into script
-    if len(sys.argv) == 3:
-        username = sys.argv[1]
-        password = sys.argv[2]
-    else:
-        print("Incorrect number of arguments...")
-        sys.exit(1)
+if shutil.which(driver_string) is not None:
 
     print("Launching browser")
-    browser = webdriver.Firefox()
+    
+    browser = browser() # Instantiate the browser driver
+    browser.set_window_position(0, 0)
+    browser.set_window_size(1024, 940)
+
     url = "https://www.filmai.in"
 
     #password = "2z1hre9y9test"
@@ -49,7 +68,17 @@ if shutil.which("geckodriver") is not None:
     # Run the selenium tasks to acquire the points
     browser.get((url))
 
-    open_loginform_btn = browser.find_element_by_xpath("//div[@class='d-inline-block link-green loginBtn']")
+    try:
+        toggle_menu_icon = browser.find_element_by_xpath("//span[@class='navbar-toggler-icon']")
+        toggle_menu_icon.click()
+    except:
+        pass
+
+    open_loginform_btn = WebDriverWait(browser,3).until(
+        EC.presence_of_element_located((By.XPATH, "//div[@class='d-inline-block link-green loginBtn']"))
+    )
+
+    #browser.find_element_by_xpath("//div[@class='d-inline-block link-green loginBtn']")
     open_loginform_btn.click()
 
     uname_element = WebDriverWait(browser, 2).until(

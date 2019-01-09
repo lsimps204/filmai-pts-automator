@@ -26,11 +26,17 @@ if usr_browser.strip().lower() == "firefox":
     driverpath = os.path.join(os.path.expanduser("~"), "geckodriver") # Installation path
     driver_link = "https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip"
     browser = webdriver.Firefox 
+    opts = webdriver.FirefoxOptions()
+    opts.headless = True
     driver_string = "geckodriver"
 elif usr_browser.strip().lower() == "chrome":
     driverpath = os.path.join(os.path.expanduser("~"), "chromedriver") # Installation path
     driver_link = "https://chromedriver.storage.googleapis.com/2.45/chromedriver_win32.zip"
     browser = webdriver.Chrome
+    opts = webdriver.ChromeOptions()
+    # headless not working for Chrome...
+
+
     driver_string = "chromedriver"
 else:
     print("Invalid browser entered. Quitting...")
@@ -56,9 +62,9 @@ if shutil.which(driver_string) is None:
 # Run the selenium tasks
 if shutil.which(driver_string) is not None:
 
-    print("Launching browser")
+    print("Launching headless browser")
     
-    browser = browser() # Instantiate the browser driver
+    browser = browser(options=opts) # Instantiate the browser driver with given options
     browser.set_window_position(0, 0)
     browser.set_window_size(1024, 940)
 

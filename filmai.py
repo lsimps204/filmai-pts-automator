@@ -52,6 +52,7 @@ if not os.path.exists(driverpath):
         print("Extracting file...")
         z = zipfile.ZipFile(io.BytesIO(r.content))
         z.extractall(path=driverpath)
+        z.close()
 
 # Add the geckodriver executable directory to system path
 if shutil.which(driver_string) is None:
@@ -71,6 +72,8 @@ if shutil.which(driver_string) is not None:
     url = "https://www.filmai.in"
 
     #password = "2z1hre9y9test"
+
+
 
     # Run the selenium tasks to acquire the points
     browser.get((url))
